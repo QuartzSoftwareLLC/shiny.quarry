@@ -184,8 +184,7 @@ shinyApp(
                 expressions()
             ))
         })
-
-        firstLoad <- 2
+        firstLoad <<- 2
         observe_sub <- function(sub) names(input) %>% .[grep(sub, .)] %>% lapply(\(x) input[[x]])
         observeEvent(observe_sub("_add"), {
             if(firstLoad) {
@@ -235,3 +234,4 @@ shinyApp(
 
     }
 )
+## todo make it so filtes are added at the right spots. Add and or options. Add ability to delete at any of the delete buttons.
