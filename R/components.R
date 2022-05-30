@@ -136,14 +136,14 @@ subset_step <- function(input_id, data, expression = NULL) {
             ),
             shiny.quartz::QSelect.shinyInput(
                 glue::glue("{input_id}_comparitor"),
-                options = comparitors,
+                options = shiny.quartz::make_options(comparitors),
                 value = expression$comparitor,
                 label = ""
             ),
             value_input,
             shiny.mui::Button.shinyInput(glue::glue("{input_id}_delete"), "X", color = "error")
         ),
-        add_qexpression(paste0(input_id, "_add") %>% print())
+        add_qexpression(paste0(input_id, "_add"))
     )
 }
 
@@ -178,11 +178,11 @@ shinyApp(
         expressions <- reactiveVal(list())
 
         output$filters <- shiny.react::renderReact({
-            subset_ui(
+            shiny.quartz::QThemeProvider(subset_ui(
                 "test",
                 mtcars,
                 expressions()
-            )
+            ))
         })
 
         firstLoad <- 2
@@ -209,23 +209,25 @@ shinyApp(
         filteredData <- reactiveVal()
 
         output$filtered <- shiny.react::renderReact({
-            req(!is.null(filteredData))
+            req(!is.null(filteredData()))
             shiny.quartz::QDataGrid(filteredData())
         })
         observeEvent(observe_sub("value|label|comparitor"), {
+
             expressions() %>%
+                seq_along() %>%
                 lapply(\(x) {
-                    x$value <- input[[paste0("test_step_", x$step, "_value")]]
-                    x$column <- input[[paste0("test_step_", x$step, "_column")]]
-                    x$comparitor <- input[[paste0("test_step_", x$step, "_comparitor")]]
-                    x
+                    y <- expressions()[[x]]
+                    y$value <- input[[paste0("test_step_", x, "_value")]]
+                    y$column <- input[[paste0("test_step_", x, "_column")]]
+                    y$comparitor <- input[[paste0("test_step_", x, "_comparitor")]]
+                    y
                 }) %>%
                 expressions()
-
         })
         observeEvent(input$subset, {
-            exp <<- expressions()
-
+            express <<- expressions()
+            print("here")
             data %>%
                 qsubset(expressions()) %>%
                 filteredData()
