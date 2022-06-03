@@ -103,7 +103,7 @@ qsubset <- function(data, qexpressions) {
 }
 
 
-add_qexpression <- function(input_id) {
+AddFilterButon <- function(input_id) {
     shiny.mui::Divider(
         shiny.mui::Button.shinyInput(
             glue::glue("{input_id}_add"),
@@ -143,7 +143,7 @@ subset_step <- function(input_id, data, expression = NULL) {
             value_input,
             shiny.mui::Button.shinyInput(glue::glue("{input_id}_delete"), "X", color = "error")
         ),
-        add_qexpression(paste0(input_id, "_add"))
+        AddFilterButon(paste0(input_id, "_add"))
     )
 }
 
@@ -164,28 +164,43 @@ subset_ui <- function(input_id, data, steps) {
                     steps[[step]]
                 )
             }) %>%
-            shiny.quartz::VStack(add_qexpression(input_id), ., shiny.mui::Button.shinyInput("subset", "Subset"))
-    
+            shiny.quartz::VStack(AddFilterButon(input_id), .)
 }
-        options(shiny.launch.browser = FALSE)
 
-shinyApp(
-    ui = tagList(shiny.react::reactOutput("filters"),
-        shiny.react::reactOutput("filtered")),
-    server = function(input, output) {
-        data <- mtcars
+#' data UI Function
+#'
+#' @noRd
+#' @importFrom shiny NS tagList
+#' @import shiny.quartz
+mod_subset_ui <- function(id) {
+
+    ns <- NS(id)
+    QCard(
+        title = "Subset Dataset",
+        shiny.react::reactOutput(ns("filters")))
+}
+
+mod_subset_server <- function(id, data) {
+    moduleServer(id, function(input, output, session) {
+        ns <- session$ns
 
         expressions <- reactiveVal(list())
 
         output$filters <- shiny.react::renderReact({
             shiny.quartz::QThemeProvider(subset_ui(
-                "test",
-                mtcars,
+                ns("test"),
+                data(),
                 expressions()
             ))
         })
+
+        observe_sub <- function(sub) {
+            names(input) %>%
+                .[grep(sub, .)] %>%
+                lapply(\(x) input[[x]])
+        }
+
         firstLoad <<- 2
-        observe_sub <- function(sub) names(input) %>% .[grep(sub, .)] %>% lapply(\(x) input[[x]])
         observeEvent(observe_sub("_add"), {
             if(firstLoad) {
                 firstLoad <<- firstLoad - 1
@@ -196,7 +211,7 @@ shinyApp(
             }
             
             expressions() %>%
-                append(list(qexpression(data))) %>%
+                append(list(qexpression(data()))) %>%
                 expressions()
    
         })
@@ -205,14 +220,7 @@ shinyApp(
             expressions(expressions()[-1])
         })
 
-        filteredData <- reactiveVal()
-
-        output$filtered <- shiny.react::renderReact({
-            req(!is.null(filteredData()))
-            shiny.quartz::QDataGrid(filteredData())
-        })
         observeEvent(observe_sub("value|label|comparitor"), {
-
             expressions() %>%
                 seq_along() %>%
                 lapply(\(x) {
@@ -224,14 +232,14 @@ shinyApp(
                 }) %>%
                 expressions()
         })
-        observeEvent(input$subset, {
-            express <<- expressions()
-            print("here")
-            data %>%
-                qsubset(expressions()) %>%
-                filteredData()
+
+        reactive({
+            data() %>%
+                qsubset(expressions())
         })
 
-    }
-)
+
+    })
+}
+
 ## todo make it so filtes are added at the right spots. Add and or options. Add ability to delete at any of the delete buttons.

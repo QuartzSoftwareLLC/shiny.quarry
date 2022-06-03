@@ -10,8 +10,13 @@ select_ui <- function(input_id, data) {
     )
 }
 
+# mod_subset_server <- function(id, data) {
+#     moduleServer(id, function(input, output, session) {
+#         ns <- session$ns
 
-options(shiny.launch.browser = FALSE)
+
+#     })
+    
 
 shinyApp(
     ui = tagList(shiny.react::reactOutput("selectors"),
