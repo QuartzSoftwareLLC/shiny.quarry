@@ -25,8 +25,8 @@ mod_data_ui <- function(id) {
             QSelect.shinyInput(
                 ns("source"),
                 label = "Data Source",
-                options = make_options("Upload", "IDDR"),
-                value = "IDDR"
+                options = make_options("Base R", "Upload", "IDDR"),
+                value = "Base R"
             ),
             conditionalPanel(condition = "input.source == 'Upload'", ns = ns,
                 fileInput(ns("inputData"), "Choose CSV File",
@@ -42,9 +42,16 @@ mod_data_ui <- function(id) {
                     options = options,
                     value = "https://s3.amazonaws.com/quartzdata/datasets/influenza-burden.csv"
                 )
-            ),        
-        # subset_ui(ns("subset"), 1:5),
-            shiny.react::reactOutput(ns("preview"))
+            ),  
+            conditionalPanel(
+                condition = "input.source == 'Base R'", ns = ns,
+                QSelect.shinyInput(
+                    ns("baseSource"),
+                    label = "Dataset",
+                    options = make_options("mtcars", "iris", "titanic", "wine"),
+                    value = "iris"
+                )
+            )
         )
     )
 }
@@ -56,7 +63,7 @@ mod_data_ui <- function(id) {
 mod_data_server <- function(id) {
     moduleServer(id, function(input, output, session) {
         ns <- session$ns
-        data <- reactive({
+        input_data <- reactive({
             if (input$source == "Upload") {
                 if(is.null(input$inputData)) {
                     return(NULL)
@@ -68,13 +75,17 @@ mod_data_server <- function(id) {
                         return()
                 }
             }
-            else {
+            else if (input$source == "IDDR") {
                 return(tidyiddr::cache_download(input$iddrSource))
+            }
+            else {
+                req(input$baseSource)
+                return(get(input$baseSource))
             }
         })
 
         factored_data <- reactive({
-            data() %>%
+            input_data() %>%
                 dplyr::mutate_all(factor_convert, len = 10)
         })
 

@@ -36,16 +36,16 @@ mod_tableone_server <- function(id, data) {
                         ns("columns"),
                         multiple = T,
                         fullWidth = T,
-                        value = list(),
-                        options = colnames(data()) %>% .[sapply(data(), is.factor)],
+                        value = list("Species"),
+                        options = colnames(data()) %>% .[sapply(data(), is.factor)] %>% as.list(),
                         inputProps = list(label = "Columns")
                     ),
                     shiny.mui::Autocomplete.shinyInput(
                         ns("rows"),
                         multiple = T,
                         fullWidth = T,
-                        value = list(),
-                        options = colnames(data()),
+                        value = list("Petal.Width", "Petal.Length"),
+                        options = colnames(data()) %>% as.list(),
                         inputProps = list(label = "Rows")
                     )
                 )
