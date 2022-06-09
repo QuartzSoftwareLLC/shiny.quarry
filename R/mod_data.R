@@ -86,6 +86,7 @@ mod_data_server <- function(id) {
 
         factored_data <- reactive({
             input_data() %>%
+                req() %>%
                 dplyr::mutate_all(factor_convert, len = 10)
         })
 
