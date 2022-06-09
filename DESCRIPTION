@@ -20,6 +20,7 @@ Imports:
     shiny.react,
     tidyiddr,
     DataExplorer,
+    table1,
     ggquartz
 Remotes: 
     quartzsoftwarellc/shiny.mui,
