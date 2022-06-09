@@ -1,6 +1,15 @@
 data <- jsonlite::fromJSON("https://epi.quartzsoftware.com/api/data")
 options <- setNames(data$title, data$link)
 
+factor_convert <- function(x, len) {
+    val <- length(unique(x))
+
+    if (val < len) {
+        x <- factor(x)
+    }
+    return(x)
+}
+
 
 #' data UI Function
 #'
@@ -47,7 +56,7 @@ mod_data_ui <- function(id) {
 mod_data_server <- function(id) {
     moduleServer(id, function(input, output, session) {
         ns <- session$ns
-        reactive({
+        data <- reactive({
             if (input$source == "Upload") {
                 if(is.null(input$inputData)) {
                     return(NULL)
@@ -63,6 +72,15 @@ mod_data_server <- function(id) {
                 return(tidyiddr::cache_download(input$iddrSource))
             }
         })
+
+        factored_data <- reactive({
+            data() %>%
+                dplyr::mutate_all(factor_convert, len = 10)
+        })
+
+        return(factored_data)
     })
+
+
 }
 
