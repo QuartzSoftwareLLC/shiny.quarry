@@ -48,7 +48,7 @@ mod_data_ui <- function(id) {
                 QSelect.shinyInput(
                     ns("baseSource"),
                     label = "Dataset",
-                    options = make_options("mtcars", "iris", "titanic", "wine"),
+                    options = make_options("mtcars", "iris"),
                     value = "iris"
                 )
             )
@@ -85,9 +85,9 @@ mod_data_server <- function(id) {
         })
 
         factored_data <- reactive({
-            input_data() %>%
-                req() %>%
-                dplyr::mutate_all(factor_convert, len = 10)
+                input_data() %>%
+                    req() %>%
+                    dplyr::mutate_all(factor_convert, len = 10)
         })
 
         return(factored_data)

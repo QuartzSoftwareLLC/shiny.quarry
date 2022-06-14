@@ -17,12 +17,12 @@ Subhead <- function(text) {
                     variant = "h6",
                     children = "Data Viewer"
                 ),
-                shiny.react::reactOutput(ns("preview")),
+                dataTableOutput(ns("preview")),
                 shiny.mui::Typography(
                     variant = "h6",
                     children = "Summary"
                 ),
-                shiny.react::reactOutput(ns("introduce"))
+                tableOutput(ns("introduce"))
             )
         ),
         QCard(
@@ -52,11 +52,10 @@ mod_summary_server <- function(id, data) {
     moduleServer(id, function(input, output, session) {
         ns <- session$ns
 
-        output$introduce <- renderDataGrid(
-            reactive({data() %>%
+        output$introduce <- renderTable(
+            data() %>%
                 DataExplorer::introduce() %>%
-                tidyr::pivot_longer(everything())})
-        )
+                tidyr::pivot_longer(everything())         )
 
 output$bar <- renderPlot({
     DataExplorer::plot_bar(data())
@@ -74,8 +73,8 @@ output$correlation <- renderPlot({
 output$missing <- renderPlot({
     DataExplorer::plot_missing(data())
 })
-        output$preview <- renderDataGrid(
-            data
+        output$preview <- renderDataTable(
+            data()
         )
     })
 }
